@@ -65,6 +65,22 @@ prisma/schema.prisma       # full data model
 - keep the Next app on Vercel and run a separate small Socket.io service elsewhere, or
 - swap Socket.io for a managed realtime service (Supabase Realtime, Pusher, Ably).
 
+## Deploying so other people can use it (Render)
+
+Render runs a persistent Node process, which is what this app needs for Socket.io. A `render.yaml` blueprint is included.
+
+1. Push the repo to GitHub (already done if you're reading this from there).
+2. On [render.com](https://render.com), sign up/log in, then **New → Blueprint** and pick this repo. Render reads `render.yaml` and configures the service automatically (free plan, `AUTH_SECRET` auto-generated).
+3. Click **Apply** — first deploy takes a few minutes (installs deps, builds, migrates, seeds).
+4. Once live, open the assigned `https://hackathon-chat-xxxx.onrender.com` URL and share it. Seeded organizer login: `organizer@hackathon.dev` / `organizer123`.
+
+**No blueprint support / prefer manual setup:** create a new **Web Service** on Render pointing at this repo, with:
+- Build command: `npm install && npx prisma generate && npx prisma migrate deploy && npm run build`
+- Start command: `npx tsx prisma/seed.ts && npm start`
+- Env vars: `NODE_ENV=production`, `AUTH_TRUST_HOST=true`, `AUTH_SECRET=<generate a random string>`, `DATABASE_URL=file:./dev.db`
+
+**Honest caveat:** the free Render plan has no persistent disk, so the SQLite database and any uploaded files reset whenever you push a new deploy (they survive normal sleep/wake cycles between deploys, just not a fresh deploy). Fine for demoing to people; if you need data to survive redeploys long-term, add a Postgres instance and switch `datasource.provider` in `prisma/schema.prisma` from `sqlite` to `postgresql`.
+
 ## Features implemented
 
 - **Auth:** signup/login, avatar upload, team name, role (Participant/Mentor/Judge/Organizer), protected routes via middleware

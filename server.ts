@@ -7,7 +7,7 @@ import { prisma } from "./src/lib/prisma";
 import { registerSocketServer } from "./src/lib/socket-emitter";
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
+const hostname = dev ? "localhost" : "0.0.0.0";
 const port = Number(process.env.PORT) || 3000;
 
 const app = next({ dev, hostname, port });
@@ -27,7 +27,7 @@ app.prepare().then(() => {
         // @ts-expect-error -- socket.request is a raw IncomingMessage, compatible enough for cookie parsing
         req: socket.request,
         secret: process.env.AUTH_SECRET,
-        secureCookie: (process.env.NEXTAUTH_URL ?? "").startsWith("https"),
+        secureCookie: process.env.NODE_ENV === "production",
       });
       if (!token?.id) {
         next(new Error("unauthorized"));
