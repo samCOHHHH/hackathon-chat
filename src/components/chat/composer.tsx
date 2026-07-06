@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, Smile, X, Reply, BarChart3, Clock, Loader2 } from "lucide-react";
+import { Send, Smile, X, Reply, BarChart3, Loader2 } from "lucide-react";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
@@ -11,7 +11,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { apiPost } from "@/lib/fetcher";
 import { useTypingIndicator } from "@/hooks/use-typing";
 import { CreatePollDialog } from "@/components/chat/create-poll-dialog";
-import { cn } from "@/lib/utils";
 import type { MessageDTO } from "@/lib/message-dto";
 
 type MemberOption = { id: string; name: string; image: string | null };
@@ -32,8 +31,6 @@ export function Composer({
   const [sending, setSending] = useState(false);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [pollOpen, setPollOpen] = useState(false);
-  const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [scheduledFor, setScheduledFor] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { resolvedTheme } = useTheme();
   const { notifyTyping, notifyStopTyping } = useTypingIndicator(conversationId);
@@ -71,8 +68,6 @@ export function Composer({
     const trimmed = content.trim();
     if (!trimmed) return;
 
-    const scheduledDate = scheduledFor ? new Date(scheduledFor) : null;
-
     setSending(true);
     try {
       await apiPost("/api/messages", {
@@ -81,14 +76,11 @@ export function Composer({
         type: "TEXT",
         replyToId: replyTo?.id ?? null,
         mentionUserIds: Array.from(mentionIds),
-        scheduledFor: scheduledDate,
       });
       setContent("");
       setMentionIds(new Set());
       onCancelReply();
       notifyStopTyping();
-      setScheduledFor("");
-      setScheduleOpen(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to send message");
     } finally {
@@ -166,30 +158,6 @@ export function Composer({
           />
           <PopoverContent className="w-auto border-none p-0" align="end">
             <EmojiPicker onEmojiClick={insertEmoji} theme={resolvedTheme === "dark" ? Theme.DARK : Theme.LIGHT} height={360} />
-          </PopoverContent>
-        </Popover>
-
-        <Popover open={scheduleOpen} onOpenChange={setScheduleOpen}>
-          <PopoverTrigger
-            render={
-              <Button variant="ghost" size="icon" className="shrink-0" title="Schedule message">
-                <Clock className={cn("h-4 w-4", scheduledFor && "text-primary")} />
-              </Button>
-            }
-          />
-          <PopoverContent className="w-64 space-y-2" align="end">
-            <p className="text-xs text-muted-foreground">Send this message later</p>
-            <input
-              type="datetime-local"
-              value={scheduledFor}
-              onChange={(e) => setScheduledFor(e.target.value)}
-              className="w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-            />
-            {scheduledFor && (
-              <Button size="sm" variant="ghost" onClick={() => setScheduledFor("")} className="w-full">
-                Clear
-              </Button>
-            )}
           </PopoverContent>
         </Popover>
 
