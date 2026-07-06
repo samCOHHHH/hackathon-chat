@@ -37,12 +37,13 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  const general = await prisma.conversation.findFirst({ where: { type: "GENERAL" } });
-  if (general) {
-    await prisma.conversationMember.create({
-      data: { conversationId: general.id, userId: user.id },
-    });
+  let general = await prisma.conversation.findFirst({ where: { type: "GENERAL" } });
+  if (!general) {
+    general = await prisma.conversation.create({ data: { type: "GENERAL", name: "General" } });
   }
+  await prisma.conversationMember.create({
+    data: { conversationId: general.id, userId: user.id },
+  });
 
   return NextResponse.json({ id: user.id, email: user.email });
 }
