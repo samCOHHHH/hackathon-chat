@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signupSchema } from "@/lib/validations";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { isSuperAdmin } from "@/lib/permissions";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") ?? "local";
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
   }
 
-  const { name, email, password, teamName, role } = parsed.data;
+  const { name, email, password, teamName } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
       email,
       passwordHash,
       teamName: teamName || null,
-      role,
+      role: isSuperAdmin(email) ? "ORGANIZER" : "PARTICIPANT",
       image: body.image || null,
     },
   });

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { isSuperAdmin } from "@/lib/permissions";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
@@ -34,18 +35,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         if (user.isBanned) throw new Error("BANNED");
 
-        await prisma.user.update({
+        const shouldPromote = isSuperAdmin(user.email) && user.role !== "ORGANIZER";
+
+        const updated = await prisma.user.update({
           where: { id: user.id },
-          data: { status: "ONLINE", lastSeen: new Date() },
+          data: {
+            status: "ONLINE",
+            lastSeen: new Date(),
+            ...(shouldPromote ? { role: "ORGANIZER" as const } : {}),
+          },
         });
 
         return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          role: user.role,
-          teamName: user.teamName,
+          id: updated.id,
+          name: updated.name,
+          email: updated.email,
+          image: updated.image,
+          role: updated.role,
+          teamName: updated.teamName,
         };
       },
     }),

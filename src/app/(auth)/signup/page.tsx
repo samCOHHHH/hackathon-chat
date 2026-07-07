@@ -10,21 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AvatarUpload } from "@/components/avatar-upload";
-
-const ROLES = [
-  { value: "PARTICIPANT", label: "Participant" },
-  { value: "MENTOR", label: "Mentor" },
-  { value: "JUDGE", label: "Judge" },
-  { value: "ORGANIZER", label: "Organizer" },
-];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -35,7 +21,6 @@ export default function SignupPage() {
     email: "",
     password: "",
     teamName: "",
-    role: "PARTICIPANT",
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -116,36 +101,14 @@ export default function SignupPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="teamName">Team name</Label>
-              <Input
-                id="teamName"
-                placeholder="Team Rocket"
-                value={form.teamName}
-                onChange={(e) => setForm((f) => ({ ...f, teamName: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Role</Label>
-              <Select
-                value={form.role}
-                onValueChange={(v) => {
-                  if (typeof v === "string") setForm((f) => ({ ...f, role: v }));
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLES.map((r) => (
-                    <SelectItem key={r.value} value={r.value}>
-                      {r.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="teamName">Team name</Label>
+            <Input
+              id="teamName"
+              placeholder="Team Rocket"
+              value={form.teamName}
+              onChange={(e) => setForm((f) => ({ ...f, teamName: e.target.value }))}
+            />
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>

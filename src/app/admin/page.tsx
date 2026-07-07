@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import useSWR from "swr";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Ban, CheckCircle2, Megaphone, ShieldAlert, Users, Wifi } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PresenceDot } from "@/components/presence-dot";
 import { fetcher, apiPatch, apiPost } from "@/lib/fetcher";
+import { isSuperAdmin } from "@/lib/permissions";
 
 type AdminUser = {
   id: string;
@@ -38,6 +40,8 @@ type Report = {
 };
 
 export default function AdminPage() {
+  const { data: session } = useSession();
+  const canManageRoles = isSuperAdmin(session?.user?.email);
   const { data: users, mutate: mutateUsers } = useSWR<AdminUser[]>("/api/admin/users", fetcher, {
     refreshInterval: 15_000,
   });
@@ -130,16 +134,22 @@ export default function AdminPage() {
                       {u.email} {u.teamName && `· ${u.teamName}`}
                     </p>
                   </div>
-                  <select
-                    value={u.role}
-                    onChange={(e) => changeRole(u, e.target.value)}
-                    className="rounded-md border border-input bg-transparent px-2 py-1 text-xs"
-                  >
-                    <option value="PARTICIPANT">Participant</option>
-                    <option value="MENTOR">Mentor</option>
-                    <option value="JUDGE">Judge</option>
-                    <option value="ORGANIZER">Organizer</option>
-                  </select>
+                  {canManageRoles ? (
+                    <select
+                      value={u.role}
+                      onChange={(e) => changeRole(u, e.target.value)}
+                      className="rounded-md border border-input bg-transparent px-2 py-1 text-xs"
+                    >
+                      <option value="PARTICIPANT">Participant</option>
+                      <option value="MENTOR">Mentor</option>
+                      <option value="JUDGE">Judge</option>
+                      <option value="ORGANIZER">Organizer</option>
+                    </select>
+                  ) : (
+                    <Badge variant="secondary" className="text-xs">
+                      {u.role}
+                    </Badge>
+                  )}
                   <Button
                     size="sm"
                     variant={u.isBanned ? "outline" : "destructive"}

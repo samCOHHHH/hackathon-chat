@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireOrganizer } from "@/lib/api-auth";
 import { roleEnum } from "@/lib/validations";
+import { isSuperAdmin } from "@/lib/permissions";
 import { getIO, roomForUser } from "@/lib/socket-emitter";
 
 const schema = z.object({
@@ -12,13 +13,17 @@ const schema = z.object({
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { error } = await requireOrganizer();
+  const { error, user: actor } = await requireOrganizer();
   if (error) return error;
   const { id } = await params;
 
   const body = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+
+  if (parsed.data.role !== undefined && !isSuperAdmin(actor.email)) {
+    return NextResponse.json({ error: "Only the super admin can change roles" }, { status: 403 });
+  }
 
   const user = await prisma.user.update({ where: { id }, data: parsed.data });
 
