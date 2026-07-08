@@ -6,6 +6,13 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "./src/lib/prisma";
 import { registerSocketServer } from "./src/lib/socket-emitter";
 
+// Render (and similar hosts) assign an internal bind address/port that must never leak into
+// auth redirect URLs. Prefer the platform's public URL over anything derived from the socket.
+if (!process.env.NEXTAUTH_URL && process.env.RENDER_EXTERNAL_URL) {
+  process.env.NEXTAUTH_URL = process.env.RENDER_EXTERNAL_URL;
+  process.env.AUTH_URL = process.env.RENDER_EXTERNAL_URL;
+}
+
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
 const port = Number(process.env.PORT) || 3000;
