@@ -18,6 +18,7 @@ import { apiPatch, apiPost } from "@/lib/fetcher";
 import { formatLastSeen } from "@/lib/format-time";
 import { GroupSettingsDialog } from "@/components/chat/group-settings-dialog";
 import { PinnedMessagesDialog } from "@/components/chat/pinned-messages-dialog";
+import { MembersListDialog } from "@/components/chat/members-list-dialog";
 import { useConversations } from "@/hooks/use-conversations";
 import type { ConversationSummary } from "@/types/chat";
 
@@ -32,6 +33,7 @@ export function ConversationHeader({
   const { mutate } = useConversations();
   const [groupSettingsOpen, setGroupSettingsOpen] = useState(false);
   const [pinnedOpen, setPinnedOpen] = useState(false);
+  const [membersOpen, setMembersOpen] = useState(false);
 
   async function toggleMute() {
     await apiPatch(`/api/conversations/${conversation.id}/membership`, { isMuted: !conversation.isMuted });
@@ -96,6 +98,12 @@ export function ConversationHeader({
           <Pin className="h-4 w-4" />
         </Button>
 
+        {conversation.type === "GENERAL" && (
+          <Button variant="ghost" size="icon" title="View members" onClick={() => setMembersOpen(true)}>
+            <Users className="h-4 w-4" />
+          </Button>
+        )}
+
         {conversation.type === "GROUP" && (
           <Button variant="ghost" size="icon" title="Group settings" onClick={() => setGroupSettingsOpen(true)}>
             <Settings className="h-4 w-4" />
@@ -143,6 +151,9 @@ export function ConversationHeader({
         />
       )}
       <PinnedMessagesDialog conversationId={conversation.id} open={pinnedOpen} onOpenChange={setPinnedOpen} />
+      {conversation.type === "GENERAL" && (
+        <MembersListDialog conversationId={conversation.id} open={membersOpen} onOpenChange={setMembersOpen} />
+      )}
     </div>
   );
 }
