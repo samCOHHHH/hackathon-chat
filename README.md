@@ -78,11 +78,11 @@ Render runs a persistent Node process, which is what this app needs for Socket.i
 4. Once live, open the assigned `https://hackathon-chat-xxxx.onrender.com` URL and share it with participants. Seeded organizer login: `organizer@hackathon.dev` / `organizer123` — change that password immediately, or better, promote a real account to `ORGANIZER` and demote/remove the seeded one from the admin dashboard.
 
 **No blueprint support / prefer manual setup:** create a new **Web Service** on Render (Starter plan) pointing at this repo, with a 1GB disk mounted at `/data`, and:
-- Build command: `npm install && npx prisma generate && npm run build`
+- Build command: `npm install --include=dev && npx prisma generate && npm run build`
 - Start command: `npx prisma migrate deploy && npx tsx prisma/seed.ts && npm start`
-- Env vars: `NODE_ENV=production`, `AUTH_TRUST_HOST=true`, `AUTH_SECRET=<generate a random string>`, `DATABASE_URL=file:/data/dev.db`
+- Env vars: `NODE_ENV=production`, `AUTH_TRUST_HOST=true`, `AUTH_SECRET=<generate a random string>`, `DATABASE_URL=file:/data/dev.db`, `UPLOAD_DIR=/data/uploads`
 
-**Remaining honest caveat:** the persistent disk covers the database only. Uploaded files (`public/uploads`) still live on ephemeral storage and reset on redeploy — broken image links after a redeploy, not data loss, but worth knowing. Fixing that means serving uploads from the mounted disk through a small API route instead of Next's static file serving, or moving to S3/Supabase Storage — ask if you want that wired up before the event.
+Both the database and uploaded files (images, voice messages, GIFs) now live on the persistent disk at `/data`, so both survive redeploys — uploads are served through `/api/files/[filename]` rather than Next's static `/public` handling, which is what makes that possible.
 
 **Just testing/demoing, not running the actual event yet?** Swap `plan: starter` back to `plan: free` and drop the `disk:` block — free tier works fine for that, with the tradeoffs described above.
 
