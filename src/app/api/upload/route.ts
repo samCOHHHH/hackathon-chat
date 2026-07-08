@@ -5,8 +5,7 @@ import { nanoid } from "nanoid";
 import { auth } from "@/lib/auth";
 import { ALLOWED_MIME_TYPES, MAX_UPLOAD_BYTES } from "@/lib/validations";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
-
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+import { UPLOAD_DIR } from "@/lib/upload-dir";
 
 function safeExt(filename: string): string {
   const ext = path.extname(filename).toLowerCase().replace(/[^a-z0-9.]/g, "");
@@ -51,7 +50,7 @@ export async function POST(req: NextRequest) {
   await writeFile(path.join(UPLOAD_DIR, filename), buffer);
 
   return NextResponse.json({
-    url: `/uploads/${filename}`,
+    url: `/api/files/${filename}`,
     name: file.name,
     size: file.size,
     mimeType: file.type,
