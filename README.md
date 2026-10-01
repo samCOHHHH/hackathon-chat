@@ -26,7 +26,7 @@ npm run db:seed          # creates #General + a demo organizer account
 npm run dev              # starts Next.js + Socket.io on http://localhost:3000
 ```
 
-Seeded organizer login: `organizer@hackathon.dev` / `organizer123`
+Seeded organizer login: `organizer@hackathon.dev` / `organizer123` (local demo account only: change it before any deployment)
 
 Sign up as a normal participant from `/signup`. Anyone can be promoted to `ORGANIZER` from the admin dashboard (`/admin`) once logged in as the seeded organizer.
 
